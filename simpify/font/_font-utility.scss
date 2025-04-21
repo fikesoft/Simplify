@@ -1,11 +1,19 @@
 @use 'sass:math';
+@use 'sass:map';
 @use '../breakpoints/breakpoints-variables' as *;
+
 
 // Font families
 $font-families: (
-  'primary': 'Roboto, sans-serif',
-  'secondary': 'Merriweather, serif',
-  'monospace': 'Courier New, monospace'
+  'primary': 'Onest',
+);
+
+// Font weights
+$font-weights: (
+  'regular': 400,
+  'medium': 500,
+  'demi-bold': 600,
+  'bold': 700,
 );
 
 // Font sizes (in px)
@@ -19,44 +27,47 @@ $font-sizes: (
   24: 24px,
   32: 32px,
   48: 48px,
-  64: 64px,
+  64: 64px
 );
 
-// Convert px to rem
-@function rem($size) {
-  @return math.div($size, 16) + rem;
+// Fixed rem() function
+@function rem($px) {
+  @return (math.div($px, 16px)) * 1rem; // ✅ Uses math.div and unit-safe division
 }
 
-// Base font mixin
-@mixin font-base($font: 'primary', $size: 16px, $color: null) {
+// Breakpoint helper mixin
+@mixin respond-to($breakpoint) {
+  @if map.has-key($breakpoints, $breakpoint) {
+    @media (min-width: map.get($breakpoints, $breakpoint)) {
+      @content;
+    }
+  }
+}
+
+// Base font mixin (without weight)
+@mixin font-base(
+  $font: 'primary',
+  $size: 16px,
+  $color: null
+) {
   font-family: map.get($font-families, $font);
-  font-size: rem($size);
+  font-size: rem($size); // ✅ Safe rem() usage
   @if $color != null {
     color: $color;
   }
 }
 
-// Generate font family utilities
+// Font family utilities
 @each $name, $family in $font-families {
   .font-#{$name} {
     font-family: $family !important;
   }
 }
 
-// Generate combined font utilities (font-family + font-size)
-@each $name, $family in $font-families {
-  @each $size, $value in $font-sizes {
-    .font-#{$name}-#{$size}x {
-      font-family: $family !important;
-      font-size: rem($value) !important;
-    }
-  }
-}
-
-// Generate standalone font size utilities
-@each $size, $value in $font-sizes {
-  .fs-#{$size}x {
-    font-size: rem($value) !important;
+// Font weight utilities
+@each $weight, $value in $font-weights {
+  .fw-#{$weight} {
+    font-weight: $value !important;
   }
 }
 
@@ -73,8 +84,84 @@ $breakpoints: (
   @media (min-width: $bp-min) {
     @each $size, $value in $font-sizes {
       .fs-#{$breakpoint}-#{$size}x {
-        font-size: rem($value) !important;
+        font-size: rem($value) !important; // ✅ Safe rem()
       }
     }
   }
+}
+
+// Component-specific typography
+.title-display {
+  @include font-base('primary', 36px); // ✅ Safe
+  @include respond-to('md') {
+    @include font-base('primary', 64px);
+  }
+}
+
+.h1 {
+  @include font-base('primary', 32px);
+  @include respond-to('md') {
+    @include font-base('primary', 48px);
+  }
+}
+
+.h2 {
+  @include font-base('primary', 32px);
+  @include respond-to('md') {
+    @include font-base('primary', 36px);
+  }
+}
+
+.h3 {
+  @include font-base('primary', 24px);
+  @include respond-to('md') {
+    @include font-base('primary', 32px);
+  }
+}
+
+.h4 {
+  @include font-base('primary', 20px);
+  @include respond-to('md') {
+    @include font-base('primary', 24px);
+  }
+}
+
+.h5 {
+  @include font-base('primary', 18px);
+  @include respond-to('md') {
+    @include font-base('primary', 20px);
+  }
+}
+
+.h6 {
+  @include font-base('primary', 16px);
+  @include respond-to('md') {
+    @include font-base('primary', 18px);
+  }
+}
+
+.paragraph {
+  @include font-base('primary', 16px);
+  @include respond-to('md') {
+    @include font-base('primary', 16px); // ✅ No change needed
+  }
+}
+
+.paragraph-small {
+  @include font-base('primary', 14px);
+  @include respond-to('md') {
+    @include font-base('primary', 14px);
+  }
+}
+
+.caption {
+  @include font-base('primary', 12px);
+  @include respond-to('md') {
+    @include font-base('primary', 12px);
+  }
+}
+
+// Global default weight (optional)
+body {
+  font-weight: map.get($font-weights, 'regular') !important;
 }
